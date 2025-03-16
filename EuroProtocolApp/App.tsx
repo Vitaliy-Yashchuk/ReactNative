@@ -1,20 +1,21 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Button, View, Text, TextInput, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// Створіть ваші екрани
-
-function HomeScreen({ navigation }: any) {
+// Створіть ваші екрани для вкладок
+function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Європротокол</Text>
-      <Button title="Оформити протокол" onPress={() => navigation.navigate('ParticipantA')} />
+      <Button title="Оформити протокол" onPress={() => alert('Перехід до екрану учасника A')} />
     </View>
   );
 }
 
-function ParticipantAScreen({ navigation }: any) {
+function ParticipantAScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Дані учасника А</Text>
@@ -23,12 +24,12 @@ function ParticipantAScreen({ navigation }: any) {
       <TextInput style={styles.input} placeholder="Телефон" />
       <TextInput style={styles.input} placeholder="Модель авто" />
       <TextInput style={styles.input} placeholder="Номер авто" />
-      <Button title="Далі" onPress={() => navigation.navigate('ParticipantB')} />
+      <Button title="Далі" onPress={() => alert('Перехід до екрану учасника B')} />
     </View>
   );
 }
 
-function ParticipantBScreen({ navigation }: any) {
+function ParticipantBScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Дані учасника Б</Text>
@@ -37,7 +38,7 @@ function ParticipantBScreen({ navigation }: any) {
       <TextInput style={styles.input} placeholder="Телефон" />
       <TextInput style={styles.input} placeholder="Модель авто" />
       <TextInput style={styles.input} placeholder="Номер авто" />
-      <Button title="Далі" onPress={() => navigation.navigate('DamageDescription')} />
+      <Button title="Далі" onPress={() => alert('Перехід до екрану опису пошкодження')} />
     </View>
   );
 }
@@ -53,18 +54,56 @@ function DamageDescriptionScreen() {
   );
 }
 
-// Створення навігатора
-const Stack = createStackNavigator();
+// Створення вкладок
+const Tab = createBottomTabNavigator();
 
+// Створення навігатора вкладок
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="ParticipantA" component={ParticipantAScreen} />
-        <Stack.Screen name="ParticipantB" component={ParticipantBScreen} />
-        <Stack.Screen name="DamageDescription" component={DamageDescriptionScreen} />
-      </Stack.Navigator>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: 'tomato',
+          tabBarInactiveTintColor: 'gray',
+        }}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="home" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="ParticipantA"
+          component={ParticipantAScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="account" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="ParticipantB"
+          component={ParticipantBScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="account-group" color={color} size={size} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="DamageDescription"
+          component={DamageDescriptionScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <MaterialCommunityIcons name="car-wrench" color={color} size={size} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
