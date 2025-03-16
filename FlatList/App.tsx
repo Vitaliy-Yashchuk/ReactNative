@@ -4,18 +4,21 @@ import {
   TouchableOpacity, Modal, TextInput, Button 
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [newTask, setNewTask] = useState("");
+  const [newDate, setNewDate] = useState("");
+  const [priority, setPriority] = useState("low");
 
   useEffect(() => {
     fetch("https://dummyjson.com/todos")
       .then((res) => res.json())
       .then((data) => {
-        setTasks(data.todos.slice(0, 5)); // Беремо 5 завдань
+        setTasks(data.todos.slice(0, 5));
         setLoading(false);
       })
       .catch((error) => {
@@ -24,7 +27,6 @@ export default function App() {
       });
   }, []);
 
-  // 🟢 Функція для зміни статусу завдання
   const toggleTask = (id) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
@@ -33,16 +35,19 @@ export default function App() {
     );
   };
 
-  // 🟢 Додати нове завдання
   const addTask = () => {
-    if (newTask.trim() !== "") {
+    if (newTask.trim() !== "" && newDate.trim() !== "") {
       const newTaskObj = {
         id: tasks.length + 1,
         todo: newTask,
+        date: newDate,
+        priority: priority,
         completed: false,
       };
       setTasks([...tasks, newTaskObj]);
       setNewTask("");
+      setNewDate("");
+      setPriority("low");
       setModalVisible(false);
     }
   };
@@ -57,13 +62,11 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      {/* Верхня частина */}
       <View style={styles.header}>
         <Text style={styles.title}>ODOT List</Text>
         <Text style={styles.date}>4th March 2018</Text>
       </View>
 
-      {/* Список завдань */}
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id.toString()}
@@ -75,30 +78,49 @@ export default function App() {
                 size={24}
                 color={item.completed ? "green" : "gray"}
               />
-              <Text style={[styles.taskText, item.completed && styles.completedText]}>
-                {item.todo}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.taskText, item.completed && styles.completedText]}>
+                  {item.todo}
+                </Text>
+                <Text style={styles.taskDate}>📅 {item.date || "Без дати"}</Text>
+                <Text style={[styles.priority, styles[item.priority || "low"]]}>
+                  {item.priority ? item.priority.toUpperCase() : "LOW"}
+                </Text>
+              </View>
             </View>
           </TouchableOpacity>
         )}
       />
 
-      {/* Кнопка додавання */}
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
 
-      {/* Модальне вікно */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Нове завдання</Text>
             <TextInput
               style={styles.input}
-              placeholder="Введіть завдання"
+              placeholder="Назва завдання"
               value={newTask}
               onChangeText={setNewTask}
             />
+            <TextInput
+              style={styles.input}
+              placeholder="Дата (наприклад, 16.03.2025)"
+              value={newDate}
+              onChangeText={setNewDate}
+            />
+            <Picker
+              selectedValue={priority}
+              onValueChange={(itemValue) => setPriority(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Low" value="low" />
+              <Picker.Item label="Medium" value="medium" />
+              <Picker.Item label="High" value="high" />
+            </Picker>
             <View style={styles.modalButtons}>
               <Button title="Скасувати" onPress={() => setModalVisible(false)} color="red" />
               <Button title="Додати" onPress={addTask} />
@@ -142,8 +164,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   taskText: {
-    flex: 1,
     fontSize: 16,
+    marginLeft: 10,
+  },
+  taskDate: {
+    fontSize: 12,
+    color: "gray",
     marginLeft: 10,
   },
   completedText: {
@@ -188,11 +214,24 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
   },
+  picker: {
+    width: "100%",
+    height: 50,
+    marginBottom: 10,
+  },
   modalButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
   },
+  priority: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
+  low: { color: "green" },
+  medium: { color: "orange" },
+  high: { color: "red" },
   center: {
     flex: 1,
     justifyContent: "center",
