@@ -5,6 +5,9 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import * as SQLite from "expo-sqlite";
+
+const db = SQLite.openDatabase("tasks.db");
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
@@ -15,19 +18,37 @@ export default function App() {
   const [priority, setPriority] = useState("low");
 
   useEffect(() => {
-    fetch("https://dummyjson.com/todos")
-      .then((res) => res.json())
-      .then((data) => {
-        setTasks(data.todos.slice(0, 5));
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Помилка завантаження:", error);
-        setLoading(false);
-      });
+    createTable();
+    loadTasks();
   }, []);
 
-  const toggleTask = (id) => {
+  const createTable = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        `CREATE TABLE IF NOT EXISTS tasks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          todo TEXT,
+          date TEXT,
+          priority TEXT,
+          completed INTEGER
+        );`
+      );
+    });
+  };
+
+  const loadTasks = () => {
+    db.transaction((tx) => {
+      tx.executeSql("SELECT * FROM tasks;", [], (_, { rows }) => {
+        setTasks(rows._array);
+        setLoading(false);
+      });
+    });
+  };
+
+  const toggleTask = (id, completed) => {
+    db.transaction((tx) => {
+      tx.executeSql("UPDATE tasks SET completed = ? WHERE id = ?;", [completed ? 0 : 1, id]);
+    });
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
@@ -37,14 +58,22 @@ export default function App() {
 
   const addTask = () => {
     if (newTask.trim() !== "" && newDate.trim() !== "") {
-      const newTaskObj = {
-        id: tasks.length + 1,
-        todo: newTask,
-        date: newDate,
-        priority: priority,
-        completed: false,
-      };
-      setTasks([...tasks, newTaskObj]);
+      db.transaction((tx) => {
+        tx.executeSql(
+          "INSERT INTO tasks (todo, date, priority, completed) VALUES (?, ?, ?, ?);",
+          [newTask, newDate, priority, 0],
+          (_, result) => {
+            const newTaskObj = {
+              id: result.insertId,
+              todo: newTask,
+              date: newDate,
+              priority: priority,
+              completed: false,
+            };
+            setTasks([...tasks, newTaskObj]);
+          }
+        );
+      });
       setNewTask("");
       setNewDate("");
       setPriority("low");
@@ -64,14 +93,13 @@ export default function App() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>ODOT List</Text>
-        <Text style={styles.date}>4th March 2018</Text>
       </View>
 
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => toggleTask(item.id)}>
+          <TouchableOpacity onPress={() => toggleTask(item.id, item.completed)}>
             <View style={styles.taskItem}>
               <Ionicons
                 name={item.completed ? "checkmark-circle" : "ellipse-outline"}
@@ -83,8 +111,8 @@ export default function App() {
                   {item.todo}
                 </Text>
                 <Text style={styles.taskDate}>📅 {item.date || "Без дати"}</Text>
-                <Text style={[styles.priority, styles[item.priority || "low"]]}>
-                  {item.priority ? item.priority.toUpperCase() : "LOW"}
+                <Text style={[styles.priority, styles[item.priority]]}>
+                  {item.priority.toUpperCase()}
                 </Text>
               </View>
             </View>
@@ -146,10 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
   },
-  date: {
-    fontSize: 16,
-    color: "gray",
-  },
   taskItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -200,11 +224,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "80%",
     alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
   },
   input: {
     width: "100%",
