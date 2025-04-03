@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "expo": "~52.0.42",
+    "expo-notifications": "^0.29.14",
+    "expo-router": "^4.0.20",
+    "expo-sqlite": "^15.1.4",
+    "react": "18.3.1",
+    "react-native": "0.76.8"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "@types/react-native": "^0.73.0",
+    "typescript": "^5.3.3"
+  },
+  "name": "To-do-List",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  }
+}
