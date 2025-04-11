@@ -1,0 +1,19 @@
+{
+    "expo": {
+      "name": "CurrencyConverterApp",
+      "slug": "CurrencyConverterApp",
+      "version": "1.0.0",
+      "sdkVersion": "50.0.0",
+      "platforms": ["android"],
+      "orientation": "portrait",
+      "userInterfaceStyle": "light",
+      "updates": {
+        "fallbackToCacheTimeout": 0
+      },
+      "assetBundlePatterns": ["**/*"],
+      "android": {
+        "permissions": ["INTERNET"]
+      }
+    }
+  }
+  
